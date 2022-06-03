@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping API</title>
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="../node_modules/bootstrap-icons/font/bootstrap-icons.css">
+    <script>
+        function GetCategories(){
+            fetch("https://fakestoreapi.com/products/categories")
+            .then(function(response){
+                return response.json();
+            })  
+            .then(function(data){
+                data.unshift("All");
+                for(var item of data){
+                    var option = document.createElement("option"); 
+                    option.text = item.toUpperCase();
+                    option.value = item
+                    document.getElementById("lstCategories").appendChild(option);
+                }
+            })
+        }
+        function GetProducts(url){
+            document.getElementById("productsContainer").innerHTML ="";
+            fetch(url)
+            .then(function(response){
+                return response.json();
+            })
+            .then(function(data){
+                for(var item of data){
+                    var div = document.createElement("div");
+                    div.className = "card m-2 p-2";
+                    div.style.width = "200px";
+                    div.innerHTML = 
+                    `<img src=${item.image} class="card-img-top" height="200">
+                     <div class="card-header" style="height:120px">
+                        <p>${item.title}</p>
+                     </div>
+                     <div class="card-body">
+                        <p>${item.price}</P>
+                        <p>Rating : ${item.rating.rate}</p>
+                        <p>Count  : ${item.rating.count}
+                     </div>
+                     <div class="card-footer">
+                        <button onclick="AddToCartClick(${item.id})" class="btn btn-danger w-100">
+                            <span class="bi bi-cart4 "></span>
+                                Add to Cart
+                        </button>
+                     </div>
+
+                    `;
+                    document.getElementById("productsContainer").appendChild(div);
+                }
+            })
+        }
+        function bodyload(){
+            GetCategories();
+            GetProducts("https://fakestoreapi.com/products");
+            GetCartItemsCount(); 
+        }
+        function CategoryChanged(){
+            var categoryName = document.getElementById("lstCategories").value;
+            //console.log(categoryName);
+            if(categoryName == "All"){
+                GetProducts("https://fakestoreapi.com/products")
+            }else{
+                GetProducts(`https://fakestoreapi.com/products/category/${categoryName}`);
+            }
+        }
+        var cartItems = [];
+        var count = 0;
+        function GetCartItemsCount(){
+            count = cartItems.length;
+            document.getElementById("cartCount").innerHTML = count;
+        }
+        function AddToCartClick(id){
+            fetch(`https://fakestoreapi.com/products/${id}`)
+            .then(function(response){
+                return response.json();
+            })
+            .then(function(data){
+                cartItems.push(data);
+                alert("Item Added to Cart");  
+                GetCartItemsCount();
+            })
+        }
+        function ShowCartClick(){
+            document.querySelector("tbody").innerHTML = "";
+            for(var item of cartItems)
+            {
+                var tr = document.createElement("tr");
+                var tdPrice = document.createElement("td");
+                var tdTitle = document.createElement("td");
+                var tdPhoto = document.createElement("td");
+
+                tdTitle.innerHTML = item.title;
+                tdPrice.innerHTML = item.price;
+                
+                var img = document.createElement("img");
+                img.src = item.image;
+                img.width = "100";
+                img.height = "100";
+
+                tdPhoto.appendChild(img);
+
+                tr.appendChild(tdTitle);
+                tr.appendChild(tdPrice);
+                tr.appendChild(tdPhoto);
+
+                document.querySelector("tbody").appendChild(tr);
+
+            }
+        }
+    </script>
+    <style>
+        
+    </style>
+</head>
+<body class="container-fluid" onload="bodyload()">
+    <header class="bg-danger p-1 text-white text-center">
+        <h1><span class="bi bi-cart4"></span> Shopping Online</h1>
+    </header>
+    <div class="row mt-3">
+        <div class="col-2">
+            <h3>Select a Category</h3>
+            <select id="lstCategories" class="form-select" onchange="CategoryChanged()">
+
+            </select>
+        </div>
+        <div class="col-8">
+            <div id="productsContainer" class="d-flex flex-wrap overflow-auto" style="height:600px">
+
+            </div>
+        </div>
+        <div class="col-2">
+            <button onclick="ShowCartClick()" class="btn btn-warning" data-bs-target="#cart" data-bs-toggle="modal">
+                [<span id="cartCount"></span>]
+                <span class="bi bi-cart3"></span>
+                Your Cart Items
+            </button>
+            <div class="modal fade" id="cart">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Your Cart Item</h3>
+                            <button class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Price</th>
+                                        <th>Preview</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="modal-footer">
+                            <button data-bs-dismiss="modal" class="btn btn-success">Ok</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <footer class="bg-danger text-white text-center p-2">
+        &copy; 2022 - copyright content
+    </footer>
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
+</body>
+</html>
